@@ -32,6 +32,7 @@ while True:
     fingers, lm_list = detector.fingers_up(frame)
     print(f"Fingers up: {fingers}")
     
+    # scroll with index finger
     if fingers == [0,1,0,0,0]: # only index finger up
         direction = detector.detect_scroll_direction(lm_list)
         if direction == "up":
@@ -39,6 +40,12 @@ while True:
         elif direction == "down":
             pyautogui.scroll(-100)
     
+    # click with pinch (thumb + index + middle)
+        if detector.is_pinch_click(lm_list):
+            pyautogui.click()
+            print("Click detected")
+            
+            
     # show the frame
     cv2.imshow("Gesture Mouse", frame)
 

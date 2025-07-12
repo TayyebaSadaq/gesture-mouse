@@ -1,5 +1,6 @@
 import mediapipe as mp
 import cv2
+import math
 
 class HandDetector:
     def __init__(self):
@@ -66,3 +67,22 @@ class HandDetector:
         
         self.prev_index_y = index_y
         return direction
+    
+    def is_pinch_click(self, lm_list):
+        if len(lm_list) < 13:
+            return False
+
+        def distance(p1, p2):
+            return math.hypot(p2[1] - p1[1], p2[2] - p1[2])
+    
+        thumb = lm_list[4]
+        index = lm_list[8]
+        middle = lm_list[12]
+        
+        dist_index = distance(thumb, index)
+        dist_middle = distance(thumb, middle)
+        
+        if dist_index < 40 and dist_middle < 40:
+            return True
+        return False
+        
