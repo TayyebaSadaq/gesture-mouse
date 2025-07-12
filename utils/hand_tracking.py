@@ -7,11 +7,13 @@ class HandDetector:
         self.mp_hands = mp.solutions.hands
         self.hands = self.mp_hands.Hands()
         self.mp_draw = mp.solutions.drawing_utils
+        self.prev_index_y = None
         
     def fingers_up(self, frame):
         # convert frame to RGB
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         results = self.hands.process(rgb)
+        lm_list = [] 
         
         # if hands are detected, carry on
         if results.multi_hand_landmarks:
@@ -21,6 +23,11 @@ class HandDetector:
                 landmarks = hand_landmarks.landmark
                 h, w, _ = frame.shape
                 
+                 # Save all landmarks to list
+                for id, lm in enumerate(landmarks):
+                    x, y = int(lm.x * w), int(lm.y * h)
+                    lm_list.append((id, x, y))
+                    
                 # Thumb: check if the tip is above the base
                 if landmarks[4].x < landmarks[3].x:
                     fingers_up.append(1) # thumb up
@@ -37,6 +44,25 @@ class HandDetector:
                     else:
                         fingers_up.append(0) # finger down
             
-            return fingers_up
+            return fingers_up, lm_list
     
-        return []
+        return [], []
+    
+    def detect_scroll_direction(self, lm_list):
+        if len(lm_list) == 0:
+            return None # no hand detected
+        
+        index_y = lm_list[8][2] # coords of index finger tip
+        direction = None
+        
+        if self.prev_index_y is not None:
+            dy = index_y - self.prev_index_y
+            
+            if abs(dy) > 20: # sensitivity threshold
+                if dy > 0:
+                    direction = "down"
+                else:
+                    direction = "up"
+        
+        self.prev_index_y = index_y
+        return direction

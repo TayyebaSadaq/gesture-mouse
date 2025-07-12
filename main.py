@@ -1,6 +1,7 @@
 import cv2
 import mediapipe as mp
 from utils.hand_tracking import HandDetector
+import pyautogui
 
 # # initialise mediapipe
 # mp_hands = mp.solutions.hands
@@ -27,9 +28,16 @@ while True:
     # if results.multi_hand_landmarks:
     #     for hand_landmarks in results.multi_hand_landmarks:
     #         mp.draw.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
-
-    fingers_up = detector.fingers_up(frame)
-    print(f"Fingers up: {fingers_up}")
+    
+    fingers, lm_list = detector.fingers_up(frame)
+    print(f"Fingers up: {fingers}")
+    
+    if fingers == [0,1,0,0,0]: # only index finger up
+        direction = detector.detect_scroll_direction(lm_list)
+        if direction == "up":
+            pyautogui.scroll(100)
+        elif direction == "down":
+            pyautogui.scroll(-100)
     
     # show the frame
     cv2.imshow("Gesture Mouse", frame)
